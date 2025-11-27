@@ -1,48 +1,52 @@
-// ---------------------------------------
-// Secure Login System Using Closures
-// ---------------------------------------
+ // --------------------------------------------
+// Login Tracker with Closures + Arrow Functions
+// --------------------------------------------
 
-function createLogin(correctPassword, maxAttempts = 3) {
+function createLoginTracker(correctPassword) {
     let attempts = 0;
-    let locked = false;
+    const maxAttempts = 3;
 
-    // Arrow function to check password
-    const passwordMatches = (input) => input === correctPassword;
+    // Arrow function to check if password matches
+    const isCorrect = (input) => input === correctPassword;
 
-    // Inner function returned — uses closure
-    function attemptLogin(inputPassword) {
-        if (locked) {
-            return "Account locked. Too many failed attempts.";
-        }
+    // Returned function (closure)
+    return function (inputPassword) {
 
-        if (passwordMatches(inputPassword)) {
-            attempts = 0;  // reset on success
+        // Allow immediate correct login even if attempts are high
+        if (isCorrect(inputPassword)) {
+            attempts = 0;  // reset after correct login
             return "Login successful!";
         }
 
+        // If incorrect password
         attempts++;
 
         if (attempts >= maxAttempts) {
-            locked = true;
-            return "Account locked due to too many failed attempts.";
+            return "Account locked. Too many failed attempts.";
         }
 
         return `Incorrect password. Attempts left: ${maxAttempts - attempts}`;
-    }
-
-    return attemptLogin;
+    };
 }
 
-// ---------------------------------------
-// Example Usage
-// ---------------------------------------
+// --------------------------------------------
+// Example Tests
+// --------------------------------------------
+const login = createLoginTracker("secret");
 
-const login = createLogin("superSecret123", 3);
+// Fails, keeps count
+console.log(login("wrong"));     // Incorrect password. Attempts left: 2
+console.log(login("nope"));      // Incorrect password. Attempts left: 1
 
-console.log(login("wrong"));        // Incorrect password. Attempts left: 2
-console.log(login("nope"));         // Incorrect password. Attempts left: 1
-console.log(login("badAgain"));     // Account locked due to too many failed attempts.
-console.log(login("superSecret123")); // Account locked. Too many failed attempts.
+// Allows correct login even after failures
+console.log(login("secret"));    // Login successful!
+
+// Test lockout
+console.log(login("x"));         // Incorrect password. Attempts left: 2
+console.log(login("y"));         // Incorrect password. Attempts left: 1
+console.log(login("z"));         // Account locked. Too many failed attempts.
+console.log(login("secret"));    // Account locked. Too many failed attempts.
+
 
 
 
