@@ -1,55 +1,49 @@
- // --------------------------------------------
-// Login Tracker with Closures + Arrow Functions
-// --------------------------------------------
+function createLoginTracker(userInfo) {
+    const { password } = userInfo;
 
-function createLoginTracker(correctPassword) {
     let attempts = 0;
     const maxAttempts = 3;
+    let locked = false;
 
-    // Arrow function to check if password matches
-    const isCorrect = (input) => input === correctPassword;
+    const attemptLogin = (inputPassword) => {
 
-    // Returned function (closure)
-    return function (inputPassword) {
-
-        // Allow immediate correct login even if attempts are high
-        if (isCorrect(inputPassword)) {
-            attempts = 0;  // reset after correct login
-            return "Login successful!";
+        if (locked) {
+            return "Account locked due to too many failed login attempts";
         }
 
-        // If incorrect password
+        // Correct password
+        if (inputPassword === password) {
+            return "Login successful";
+        }
+
+        // Wrong password
         attempts++;
 
-        if (attempts >= maxAttempts) {
-            return "Account locked. Too many failed attempts.";
+        // Attempt 1–3 → show "Attempt X: Login failed"
+        if (attempts <= maxAttempts) {
+            return `Attempt ${attempts}: Login failed`;
         }
 
-        return `Incorrect password. Attempts left: ${maxAttempts - attempts}`;
+        // Attempt 4 → lock
+        locked = true;
+        return "Account locked due to too many failed login attempts";
     };
+
+    return attemptLogin;
 }
 
-// --------------------------------------------
-// Example Tests
-// --------------------------------------------
-const login = createLoginTracker("secret");
-
-// Fails, keeps count
-console.log(login("wrong"));     // Incorrect password. Attempts left: 2
-console.log(login("nope"));      // Incorrect password. Attempts left: 1
-
-// Allows correct login even after failures
-console.log(login("secret"));    // Login successful!
-
-// Test lockout
-console.log(login("x"));         // Incorrect password. Attempts left: 2
-console.log(login("y"));         // Incorrect password. Attempts left: 1
-console.log(login("z"));         // Account locked. Too many failed attempts.
-console.log(login("secret"));    // Account locked. Too many failed attempts.
 
 
-
-
-module.exports = {
-  ...(typeof createLoginTracker !== 'undefined' && { createLoginTracker })
+const userInfo = {
+    username: "johnDoe",
+    password: "abc123",
+    maxAttempts: 3
 };
+
+const login = createLoginTracker(userInfo);
+
+console.log(login("123"));      // Incorrect password. Attempts left: 2
+console.log(login("pass"));     // Incorrect password. Attempts left: 1
+console.log(login("nope"));     // Too many failed attempts. Account for johnDoe is now locked.
+console.log(login("abc123"));   // Account for johnDoe is locked.
+module.exports = {...(typeof createLoginTracker !== 'undefined' && { createLoginTracker })}
